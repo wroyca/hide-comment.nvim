@@ -7,7 +7,7 @@ Hide comment lines using Neovim's built-in conceal feature, with smart navigatio
 ## Features
 
 - **Comment Detection**: Automatically detects comment lines using treesitter queries
-- **Smart Navigation**: j/k navigation skips over concealed comment lines
+- **Smart Navigation**: j/k/h/l navigation skips over concealed comment lines and inline comments
 - **Auto Enable**: Optionally auto-enable for all supported filetypes
 - **Buffer Local**: Support for buffer-local configuration
 - **Refresh on Change**: Automatically refresh when buffer content changes
@@ -46,7 +46,7 @@ require('hide-comment').setup({
   -- Whether to automatically enable for all supported languages
   auto_enable = false,
 
-  -- Whether to enable smart navigation that skips concealed lines
+  -- Whether to enable smart navigation that skips concealed lines and inline comments
   smart_navigation = true,
 
   -- The conceallevel to set when concealing (0-3)

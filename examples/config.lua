@@ -8,7 +8,7 @@ require('hide-comment').setup({
   -- Auto-enable for all supported filetypes
   auto_enable = true,
 
-  -- Enable smart navigation (j/k skips hidden lines)
+  -- Enable smart navigation (j/k/h/l skips hidden lines and inline comments)
   smart_navigation = true,
 
   -- Set conceallevel (0-3, higher = more aggressive)

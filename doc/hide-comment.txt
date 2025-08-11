@@ -8,7 +8,7 @@ MIT License Copyright (c) 2025 William Roy
 Features:
 - Hide comment lines using Neovim's conceal feature with smart navigation.
 - Automatic detection of comments using treesitter queries.
-- Smart navigation that skips concealed comment lines.
+- Smart navigation that skips concealed comment lines and inline comments.
 - Buffer-local and global configuration support.
 - Customizable concealing level and refresh behavior.
 - User commands for easy control.
@@ -89,7 +89,7 @@ Default values:
     -- Whether to automatically enable for all supported languages
     auto_enable = false,
 
-    -- Whether to enable smart navigation that skips concealed lines
+    -- Whether to enable smart navigation that skips concealed lines and inline comments
     smart_navigation = true,
 
     -- The conceallevel to set when concealing (0-3)
@@ -115,8 +115,10 @@ you need to manually call |HideComment.enable()| or use commands.
 
 ## Smart navigation ~
 
-`smart_navigation` enables special j/k movement that skips over concealed
-comment lines. This prevents getting "stuck" on hidden lines when navigating.
+`smart_navigation` enables special j/k/h/l movement that skips over concealed
+comment lines and inline comments. This prevents getting "stuck" on hidden 
+lines when navigating vertically or on concealed inline comments when 
+navigating horizontally.
 
 ## Conceal level ~
 
@@ -208,6 +210,16 @@ Return ~
 `(string)` `(optional)` error_message
 
 ------------------------------------------------------------------------------
+                                                      *H.is_full_line_comment()*
+                `H.is_full_line_comment`({bufnr}, {node}, {row})
+Parameters ~
+{bufnr} `(number)`
+{node} `(CommentNode)`
+{row} `(number)`
+Return ~
+`(boolean)` is_full_line_comment
+
+------------------------------------------------------------------------------
                                                 *H.create_concealing_extmarks()*
                 `H.create_concealing_extmarks`({bufnr}, {nodes})
 Parameters ~
@@ -254,6 +266,34 @@ Parameters ~
 {direction} `(number)` H.direction.down or H.direction.up
 Return ~
 `(number)` next_line
+
+------------------------------------------------------------------------------
+                                                     *H.is_position_concealed()*
+            `H.is_position_concealed`({bufnr}, {line_nr}, {col_nr})
+Parameters ~
+{bufnr} `(number)`
+{line_nr} `(number)` 1-based line number
+{col_nr} `(number)` 0-based column number
+Return ~
+`(boolean)` is_in_concealed_region
+
+------------------------------------------------------------------------------
+                                                  *H.find_next_visible_column()*
+    `H.find_next_visible_column`({bufnr}, {line_nr}, {col_nr}, {direction})
+Parameters ~
+{bufnr} `(number)`
+{line_nr} `(number)` 1-based line number
+{col_nr} `(number)` 0-based column number
+{direction} `(number)` 1 for right, -1 for left
+Return ~
+`(number)` next_col
+
+------------------------------------------------------------------------------
+                                                 *H.smart_navigate_horizontal()*
+              `H.smart_navigate_horizontal`({direction}, {count})
+Parameters ~
+{direction} `(number)` 1 for right, -1 for left
+{count} `(number)` Number of moves to make
 
 ------------------------------------------------------------------------------
                                                             *H.smart_navigate()*

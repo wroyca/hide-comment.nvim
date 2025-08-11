@@ -8,7 +8,7 @@
 --- Features:
 --- - Hide comment lines using Neovim's conceal feature with smart navigation.
 --- - Automatic detection of comments using treesitter queries.
---- - Smart navigation that skips concealed comment lines.
+--- - Smart navigation that skips concealed comment lines and inline comments.
 --- - Buffer-local and global configuration support.
 --- - Customizable concealing level and refresh behavior.
 --- - User commands for easy control.
@@ -111,8 +111,10 @@ end
 ---
 --- ## Smart navigation ~
 ---
---- `smart_navigation` enables special j/k movement that skips over concealed
---- comment lines. This prevents getting "stuck" on hidden lines when navigating.
+--- `smart_navigation` enables special j/k/h/l movement that skips over concealed
+--- comment lines and inline comments. This prevents getting "stuck" on hidden 
+--- lines when navigating vertically or on concealed inline comments when 
+--- navigating horizontally.
 ---
 --- ## Conceal level ~
 ---
@@ -132,7 +134,7 @@ HideComment.config = {
   -- Whether to automatically enable for all supported languages
   auto_enable = false,
 
-  -- Whether to enable smart navigation that skips concealed lines
+  -- Whether to enable smart navigation that skips concealed lines and inline comments
   smart_navigation = true,
 
   -- The conceallevel to set when concealing (0-3)
@@ -263,30 +265,118 @@ H.get_comment_nodes = function(bufnr)
 end
 
 ---@param bufnr __hide_comment_buffer_handle
+---@param node CommentNode
+---@param row __hide_comment_line_number
+---@return boolean is_full_line_comment
+H.is_full_line_comment = function(bufnr, node, row)
+  local line_text = vim.api.nvim_buf_get_lines(bufnr, row, row + 1, false)[1] or ""
+
+  -- Get the portion before the comment
+  local start_col = (row == node.start_row) and node.start_col or 0
+  local before_comment = line_text:sub(1, start_col)
+
+  -- Get the portion after the comment
+  local end_col = (row == node.end_row) and node.end_col or #line_text
+  local after_comment = line_text:sub(end_col + 1)
+
+  -- Check if both before and after contain only whitespace
+  local before_only_whitespace = before_comment:match("^%s*$") ~= nil
+  local after_only_whitespace = after_comment:match("^%s*$") ~= nil
+
+  return before_only_whitespace and after_only_whitespace
+end
+
+---@param bufnr __hide_comment_buffer_handle
 ---@param nodes CommentNode[]
 ---@return ConcealedLine[]
 H.create_concealing_extmarks = function(bufnr, nodes)
   local concealed_lines = {}
 
   for _, node in ipairs(nodes) do
-    for row = node.start_row, node.end_row do
+    -- Handle single-line comments
+    if node.start_row == node.end_row then
+      local row = node.start_row
       local line_text = vim.api.nvim_buf_get_lines(bufnr, row, row + 1, false)[1] or ""
+      local is_full_line_comment = H.is_full_line_comment(bufnr, node, row)
 
-      local ok, extmark_id = pcall(vim.api.nvim_buf_set_extmark, bufnr, H.namespace_id, row, 0, {
-        end_row = row,
-        end_col = #line_text,
-        conceal_lines = "",
-        priority = 1000,
-      })
-
-      if ok then
-        table.insert(concealed_lines, {
-          row = row,
-          extmark_id = extmark_id,
-          original_text = line_text,
+      if is_full_line_comment then
+        -- Full line comment - conceal the entire line
+        local ok, extmark_id = pcall(vim.api.nvim_buf_set_extmark, bufnr, H.namespace_id, row, 0, {
+          end_row = row,
+          end_col = #line_text,
+          conceal_lines = "",
+          priority = 1000,
         })
+
+        if ok then
+          table.insert(concealed_lines, {
+            row = row,
+            extmark_id = extmark_id,
+            original_text = line_text,
+          })
+        else
+          H.debug_log("Failed to create extmark for row " .. row, vim.log.levels.WARN)
+        end
       else
-        H.debug_log("Failed to create extmark for row " .. row, vim.log.levels.WARN)
+        -- Inline comment - conceal only the comment part
+        local ok, extmark_id = pcall(vim.api.nvim_buf_set_extmark, bufnr, H.namespace_id, row, node.start_col, {
+          end_row = row,
+          end_col = node.end_col,
+          conceal = "",
+          priority = 1000,
+        })
+
+        if ok then
+          H.debug_log("Created inline comment extmark for row " .. row ..
+                     " cols " .. node.start_col .. "-" .. node.end_col)
+          -- Note: We don't add inline comments to concealed_lines since the line remains visible
+        else
+          H.debug_log("Failed to create inline comment extmark for row " .. row, vim.log.levels.WARN)
+        end
+      end
+    else
+      -- Multi-line comment - handle each line separately
+      for row = node.start_row, node.end_row do
+        local line_text = vim.api.nvim_buf_get_lines(bufnr, row, row + 1, false)[1] or ""
+
+        -- Determine column range for this line
+        local start_col, end_col
+        if row == node.start_row then
+          start_col = node.start_col
+          end_col = #line_text
+        elseif row == node.end_row then
+          start_col = 0
+          end_col = node.end_col
+        else
+          start_col = 0
+          end_col = #line_text
+        end
+
+        -- Check if this line is entirely within the comment
+        local spans_entire_line = start_col == 0 and end_col == #line_text
+        local is_full_line_comment = spans_entire_line and line_text:match("^%s*$") == nil
+        local ok, extmark_id = pcall(vim.api.nvim_buf_set_extmark, bufnr, H.namespace_id, row, start_col, {
+          end_row = row,
+          end_col = end_col,
+          conceal_lines = "",
+          priority = 1000,
+        })
+
+        if ok then
+          -- Only add to concealed_lines if the entire line is concealed
+          if is_full_line_comment then
+            table.insert(concealed_lines, {
+              row = row,
+              extmark_id = extmark_id,
+              original_text = line_text,
+            })
+          else
+            H.debug_log("Created partial line comment extmark for row " .. row ..
+                       " cols " .. start_col .. "-" .. end_col)
+          end
+        else
+          H.debug_log("Failed to create extmark for row " .. row, vim.log.levels.WARN)
+        end
       end
     end
   end
@@ -315,15 +405,17 @@ H.apply_concealing = function(bufnr)
     return true, nil
   end
 
-  -- Set conceallevel
+  -- Set conceallevel and concealcursor
   local config = H.get_config()
   local current_win = vim.api.nvim_get_current_win()
   local buf_win = vim.fn.bufwinid(bufnr)
 
   if buf_win ~= -1 then
     vim.api.nvim_set_option_value("conceallevel", config.conceal_level, { win = buf_win })
+    vim.api.nvim_set_option_value("concealcursor", "nvic", { win = buf_win })
   else
     vim.api.nvim_set_option_value("conceallevel", config.conceal_level, { win = current_win })
+    vim.api.nvim_set_option_value("concealcursor", "nvic", { win = current_win })
   end
 
   local concealed_lines = H.create_concealing_extmarks(bufnr, nodes)
@@ -345,14 +437,16 @@ H.remove_concealing = function(bufnr)
   vim.api.nvim_buf_clear_namespace(bufnr, H.namespace_id, 0, -1)
   H.concealed_buffers[bufnr] = nil
 
-  -- Reset conceallevel
+  -- Reset conceallevel and concealcursor
   local current_win = vim.api.nvim_get_current_win()
   local buf_win = vim.fn.bufwinid(bufnr)
 
   if buf_win ~= -1 then
     vim.api.nvim_set_option_value("conceallevel", 0, { win = buf_win })
+    vim.api.nvim_set_option_value("concealcursor", "", { win = buf_win })
   else
     vim.api.nvim_set_option_value("conceallevel", 0, { win = current_win })
+    vim.api.nvim_set_option_value("concealcursor", "", { win = current_win })
   end
 
   H.debug_log("Successfully removed concealing")
@@ -394,6 +488,91 @@ H.find_next_visible_line = function(bufnr, current_line, direction)
   return direction > 0 and total_lines or 1
 end
 
+---@param bufnr __hide_comment_buffer_handle
+---@param line_nr __hide_comment_line_number 1-based line number
+---@param col_nr __hide_comment_column_number 0-based column number
+---@return boolean is_in_concealed_region
+H.is_position_concealed = function(bufnr, line_nr, col_nr)
+  local extmarks = vim.api.nvim_buf_get_extmarks(bufnr, H.namespace_id,
+    { line_nr - 1, 0 }, { line_nr - 1, -1 }, { details = true })
+
+  for _, extmark in ipairs(extmarks) do
+    local start_row, start_col = extmark[2], extmark[3]
+    local details = extmark[4]
+
+    -- Check if this position is within a concealed region
+    if details and details.end_row and details.end_col then
+      local end_row, end_col = details.end_row, details.end_col
+
+      -- Convert to 0-based for comparison
+      if start_row == line_nr - 1 and end_row == line_nr - 1 then
+        if col_nr >= start_col and col_nr < end_col then
+          return true
+        end
+      end
+    end
+  end
+
+  return false
+end
+
+---@param bufnr __hide_comment_buffer_handle
+---@param line_nr __hide_comment_line_number 1-based line number
+---@param col_nr __hide_comment_column_number 0-based column number
+---@param direction number 1 for right, -1 for left
+---@return __hide_comment_column_number next_col
+H.find_next_visible_column = function(bufnr, line_nr, col_nr, direction)
+  local line_text = vim.api.nvim_buf_get_lines(bufnr, line_nr - 1, line_nr, false)[1] or ""
+  local max_col = #line_text
+  local next_col = col_nr + direction
+
+  -- Boundary checks
+  if direction > 0 and next_col > max_col then
+    return max_col
+  elseif direction < 0 and next_col < 0 then
+    return 0
+  end
+
+  -- Find next non-concealed position
+  while next_col >= 0 and next_col <= max_col do
+    if not H.is_position_concealed(bufnr, line_nr, next_col) then
+      return next_col
+    end
+    next_col = next_col + direction
+  end
+
+  -- Return boundary if no visible column found
+  return direction > 0 and max_col or 0
+end
+
+---@param direction number 1 for right, -1 for left
+---@param count number Number of moves to make
+H.smart_navigate_horizontal = function(direction, count)
+  local bufnr = vim.api.nvim_get_current_buf()
+
+  -- Use normal navigation if concealing is not active
+  if not H.concealed_buffers[bufnr] then
+    local key = direction > 0 and "l" or "h"
+    local cmd = count > 1 and (count .. key) or key
+    vim.cmd("normal! " .. cmd)
+    return
+  end
+
+  local current_pos = vim.api.nvim_win_get_cursor(0)
+  local current_line, current_col = current_pos[1], current_pos[2]
+  local target_col = current_col
+
+  for _ = 1, count do
+    local next_col = H.find_next_visible_column(bufnr, current_line, target_col, direction)
+    if next_col == target_col then break end
+    target_col = next_col
+  end
+
+  if target_col ~= current_col then
+    vim.api.nvim_win_set_cursor(0, { current_line, target_col })
+  end
+end
+
 ---@param direction number H.direction.down or H.direction.up
 ---@param count number Number of moves to make
 H.smart_navigate = function(direction, count)
@@ -429,18 +608,28 @@ H.setup_navigation_keymaps = function()
 
   local function move_down() H.smart_navigate(H.direction.down, vim.v.count1) end
   local function move_up() H.smart_navigate(H.direction.up, vim.v.count1) end
+  local function move_right() H.smart_navigate_horizontal(1, vim.v.count1) end
+  local function move_left() H.smart_navigate_horizontal(-1, vim.v.count1) end
 
   -- Normal mode mappings
   vim.keymap.set("n", "j", move_down, keymap_opts)
   vim.keymap.set("n", "k", move_up, keymap_opts)
   vim.keymap.set("n", "<Down>", move_down, keymap_opts)
   vim.keymap.set("n", "<Up>", move_up, keymap_opts)
+  vim.keymap.set("n", "l", move_right, keymap_opts)
+  vim.keymap.set("n", "h", move_left, keymap_opts)
+  vim.keymap.set("n", "<Right>", move_right, keymap_opts)
+  vim.keymap.set("n", "<Left>", move_left, keymap_opts)
 
   -- Visual mode mappings
   vim.keymap.set("v", "j", move_down, keymap_opts)
   vim.keymap.set("v", "k", move_up, keymap_opts)
   vim.keymap.set("v", "<Down>", move_down, keymap_opts)
   vim.keymap.set("v", "<Up>", move_up, keymap_opts)
+  vim.keymap.set("v", "l", move_right, keymap_opts)
+  vim.keymap.set("v", "h", move_left, keymap_opts)
+  vim.keymap.set("v", "<Right>", move_right, keymap_opts)
+  vim.keymap.set("v", "<Left>", move_left, keymap_opts)
 end
 
 H.create_autocommands = function()
@@ -664,7 +853,7 @@ end
 ---     stats.concealed_lines, stats.total_lines, stats.concealed_percentage))
 --- <
 HideComment.get_stats = function(bufnr)
-  bufnr = bufnr or vim.api.nvim_get_current_buf()
+  bufnr = bufnr or vim.api.nvim_get_current_buf() -- test
 
   local concealed_lines = H.concealed_buffers[bufnr] or {}
   local total_lines = vim.api.nvim_buf_line_count(bufnr)
