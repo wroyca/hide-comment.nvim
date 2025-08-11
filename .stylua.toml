@@ -1,0 +1,7 @@
+# https://github.com/JohnnyMorganz/StyLua
+
+indent_width = 2
+
+indent_type = "Spaces"
+
+space_after_function_names = "Always"
