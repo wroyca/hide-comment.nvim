@@ -2,6 +2,8 @@
 
 Hide comment lines using Neovim's built-in conceal feature, with smart navigation that skips concealed lines.
 
+![Alt text](hide-comment.gif)
+
 ## Features
 
 - **Comment Detection**: Automatically detects comment lines using treesitter queries

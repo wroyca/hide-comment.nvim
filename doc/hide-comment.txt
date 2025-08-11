@@ -1,7 +1,7 @@
 *hide-comment* Hide comments
 *HideComment*
 
-MIT License Copyright (c) 2025
+MIT License Copyright (c) 2025 William Roy
 
 ==============================================================================
 

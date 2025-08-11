@@ -1,7 +1,7 @@
 --- *hide-comment* Hide comments
 --- *HideComment*
 ---
---- MIT License Copyright (c) 2025
+--- MIT License Copyright (c) 2025 William Roy
 ---
 --- ==============================================================================
 ---
@@ -656,6 +656,7 @@ end
 ---   end
 --- <
 HideComment.is_enabled = function(bufnr)
+  -- Hello, world!
   bufnr = bufnr or vim.api.nvim_get_current_buf()
   return H.concealed_buffers[bufnr] ~= nil
 end
