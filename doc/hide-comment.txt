@@ -65,8 +65,8 @@ Fields ~
 {up} `(number)`
 
 ------------------------------------------------------------------------------
-                                                           *HideComment.setup()*
-                         `HideComment.setup`({config})
+                                                             *HideComment.setup*
+                              `HideComment.setup`
 Module setup
 
 Parameters ~
@@ -116,8 +116,8 @@ you need to manually call |HideComment.enable()| or use commands.
 ## Smart navigation ~
 
 `smart_navigation` enables special j/k/h/l movement that skips over concealed
-comment lines and inline comments. This prevents getting "stuck" on hidden 
-lines when navigating vertically or on concealed inline comments when 
+comment lines and inline comments. This prevents getting "stuck" on hidden
+lines when navigating vertically or on concealed inline comments when
 navigating horizontally.
 
 ## Conceal level ~
@@ -166,22 +166,22 @@ Type ~
 `(number)` Augroup ID for autocommands
 
 ------------------------------------------------------------------------------
-                                                                 *H.debug_log()*
-                       `H.debug_log`({message}, {level})
+                                                                   *H.debug_log*
+                                 `H.debug_log`
 Parameters ~
 {message} `(string)`
 {level} `(optional)` `(number)` vim.log.levels
 
 ------------------------------------------------------------------------------
-                                                                    *H.notify()*
-                           `H.notify`({msg}, {level})
+                                                                      *H.notify*
+                                   `H.notify`
 Parameters ~
 {msg} `(string)`
 {level} `(optional)` `(number)`
 
 ------------------------------------------------------------------------------
-                                                           *H.validate_buffer()*
-                          `H.validate_buffer`({bufnr})
+                                                             *H.validate_buffer*
+                              `H.validate_buffer`
 Parameters ~
 {bufnr} `(number)`
 Return ~
@@ -190,8 +190,8 @@ Return ~
 `(string)` `(optional)` error_message
 
 ------------------------------------------------------------------------------
-                                                     *H.get_treesitter_parser()*
-                       `H.get_treesitter_parser`({bufnr})
+                                                       *H.get_treesitter_parser*
+                           `H.get_treesitter_parser`
 Parameters ~
 {bufnr} `(number)`
 Return ~
@@ -200,8 +200,8 @@ Return ~
 `(string)` `(optional)` error_message
 
 ------------------------------------------------------------------------------
-                                                         *H.get_comment_nodes()*
-                         `H.get_comment_nodes`({bufnr})
+                                                           *H.get_comment_nodes*
+                             `H.get_comment_nodes`
 Parameters ~
 {bufnr} `(number)`
 Return ~
@@ -210,8 +210,8 @@ Return ~
 `(string)` `(optional)` error_message
 
 ------------------------------------------------------------------------------
-                                                      *H.is_full_line_comment()*
-                `H.is_full_line_comment`({bufnr}, {node}, {row})
+                                                        *H.is_full_line_comment*
+                            `H.is_full_line_comment`
 Parameters ~
 {bufnr} `(number)`
 {node} `(CommentNode)`
@@ -220,8 +220,8 @@ Return ~
 `(boolean)` is_full_line_comment
 
 ------------------------------------------------------------------------------
-                                                *H.create_concealing_extmarks()*
-                `H.create_concealing_extmarks`({bufnr}, {nodes})
+                                                  *H.create_concealing_extmarks*
+                         `H.create_concealing_extmarks`
 Parameters ~
 {bufnr} `(number)`
 {nodes} `(CommentNode[])`
@@ -229,8 +229,8 @@ Return ~
 `(ConcealedLine[])`
 
 ------------------------------------------------------------------------------
-                                                          *H.apply_concealing()*
-                         `H.apply_concealing`({bufnr})
+                                                            *H.apply_concealing*
+                              `H.apply_concealing`
 Parameters ~
 {bufnr} `(number)`
 Return ~
@@ -239,8 +239,8 @@ Return ~
 `(string)` `(optional)` error_message
 
 ------------------------------------------------------------------------------
-                                                         *H.remove_concealing()*
-                         `H.remove_concealing`({bufnr})
+                                                           *H.remove_concealing*
+                             `H.remove_concealing`
 Parameters ~
 {bufnr} `(number)`
 Return ~
@@ -249,8 +249,8 @@ Return ~
 `(string)` `(optional)` error_message
 
 ------------------------------------------------------------------------------
-                                                         *H.is_line_concealed()*
-                   `H.is_line_concealed`({bufnr}, {line_nr})
+                                                           *H.is_line_concealed*
+                             `H.is_line_concealed`
 Parameters ~
 {bufnr} `(number)`
 {line_nr} `(number)` 1-based line number
@@ -258,8 +258,8 @@ Return ~
 `(boolean)` is_concealed
 
 ------------------------------------------------------------------------------
-                                                    *H.find_next_visible_line()*
-        `H.find_next_visible_line`({bufnr}, {current_line}, {direction})
+                                                      *H.find_next_visible_line*
+                           `H.find_next_visible_line`
 Parameters ~
 {bufnr} `(number)`
 {current_line} `(number)` 1-based line number
@@ -268,8 +268,8 @@ Return ~
 `(number)` next_line
 
 ------------------------------------------------------------------------------
-                                                     *H.is_position_concealed()*
-            `H.is_position_concealed`({bufnr}, {line_nr}, {col_nr})
+                                                       *H.is_position_concealed*
+                           `H.is_position_concealed`
 Parameters ~
 {bufnr} `(number)`
 {line_nr} `(number)` 1-based line number
@@ -278,8 +278,8 @@ Return ~
 `(boolean)` is_in_concealed_region
 
 ------------------------------------------------------------------------------
-                                                  *H.find_next_visible_column()*
-    `H.find_next_visible_column`({bufnr}, {line_nr}, {col_nr}, {direction})
+                                                    *H.find_next_visible_column*
+                          `H.find_next_visible_column`
 Parameters ~
 {bufnr} `(number)`
 {line_nr} `(number)` 1-based line number
@@ -289,22 +289,22 @@ Return ~
 `(number)` next_col
 
 ------------------------------------------------------------------------------
-                                                 *H.smart_navigate_horizontal()*
-              `H.smart_navigate_horizontal`({direction}, {count})
+                                                   *H.smart_navigate_horizontal*
+                         `H.smart_navigate_horizontal`
 Parameters ~
 {direction} `(number)` 1 for right, -1 for left
 {count} `(number)` Number of moves to make
 
 ------------------------------------------------------------------------------
-                                                            *H.smart_navigate()*
-                    `H.smart_navigate`({direction}, {count})
+                                                              *H.smart_navigate*
+                               `H.smart_navigate`
 Parameters ~
 {direction} `(number)` H.direction.down or H.direction.up
 {count} `(number)` Number of moves to make
 
 ------------------------------------------------------------------------------
-                                                          *HideComment.enable()*
-                         `HideComment.enable`({bufnr})
+                                                            *HideComment.enable*
+                              `HideComment.enable`
 Enable comment hiding for a buffer
 
 Parameters ~
@@ -323,8 +323,8 @@ Usage ~
   HideComment.enable(5)
 <
 ------------------------------------------------------------------------------
-                                                         *HideComment.disable()*
-                         `HideComment.disable`({bufnr})
+                                                           *HideComment.disable*
+                             `HideComment.disable`
 Disable comment hiding for a buffer
 
 Parameters ~
@@ -343,8 +343,8 @@ Usage ~
   HideComment.disable(5)
 <
 ------------------------------------------------------------------------------
-                                                          *HideComment.toggle()*
-                         `HideComment.toggle`({bufnr})
+                                                            *HideComment.toggle*
+                              `HideComment.toggle`
 Toggle comment hiding for a buffer
 
 Parameters ~
@@ -363,8 +363,8 @@ Usage ~
   HideComment.toggle(5)
 <
 ------------------------------------------------------------------------------
-                                                      *HideComment.is_enabled()*
-                       `HideComment.is_enabled`({bufnr})
+                                                        *HideComment.is_enabled*
+                            `HideComment.is_enabled`
 Check if comment hiding is enabled for a buffer
 
 Parameters ~
@@ -379,8 +379,8 @@ Usage ~
   end
 <
 ------------------------------------------------------------------------------
-                                                       *HideComment.get_stats()*
-                        `HideComment.get_stats`({bufnr})
+                                                         *HideComment.get_stats*
+                            `HideComment.get_stats`
 Get hiding statistics for a buffer
 
 Parameters ~

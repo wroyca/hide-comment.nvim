@@ -19,9 +19,9 @@ Hide comment lines using Neovim's built-in conceal feature, with smart navigatio
 
 ```lua
 {
-  'wroyca/hide-comment',
-  config = function()
-    require('hide-comment').setup({
+  "wroyca/hide-comment",
+  config = function ()
+    require ("hide-comment").setup ({
       -- Your configuration here
     })
   end
@@ -32,9 +32,9 @@ Hide comment lines using Neovim's built-in conceal feature, with smart navigatio
 
 ```lua
 use {
-  'wroyca/hide-comment',
-  config = function()
-    require('hide-comment').setup()
+  "wroyca/hide-comment",
+  config = function ()
+    require ("hide-comment").setup ()
   end
 }
 ```
@@ -42,7 +42,7 @@ use {
 ## Setup
 
 ```lua
-require('hide-comment').setup({
+require ("hide-comment").setup ({
   -- Whether to automatically enable for all supported languages
   auto_enable = false,
 
@@ -69,25 +69,25 @@ require('hide-comment').setup({
 
 ```lua
 -- Hide comments in current buffer
-HideComment.enable()
+HideComment.enable ()
 
 -- Show comments in current buffer
-HideComment.disable()
+HideComment.disable ()
 
 -- Toggle comments in current buffer
-HideComment.toggle()
+HideComment.toggle ()
 
 -- Check if enabled
-if HideComment.is_enabled() then
-  print("Comments are hidden")
+if HideComment.is_enabled () then
+  print ("Comments are hidden")
 end
 
 -- Get statistics
-local stats = HideComment.get_stats()
-print(string.format("Hidden %d/%d lines (%.1f%%)",
-      stats.concealed_lines,
-      stats.total_lines,
-      stats.concealed_percentage))
+local stats = HideComment.get_stats ()
+print (string.format ("Hidden %d/%d lines (%.1f%%)",
+       stats.concealed_lines,
+       stats.total_lines,
+       stats.concealed_percentage))
 ```
 
 ### User Commands
