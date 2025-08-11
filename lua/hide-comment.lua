@@ -589,10 +589,6 @@ HideComment.enable = function(bufnr)
   bufnr = bufnr or vim.api.nvim_get_current_buf()
 
   local success, error_msg = H.apply_concealing(bufnr)
-  if success then
-    H.notify("Comments hidden")
-  end
-
   return success, error_msg
 end
 
@@ -613,10 +609,6 @@ HideComment.disable = function(bufnr)
   bufnr = bufnr or vim.api.nvim_get_current_buf()
 
   local success, error_msg = H.remove_concealing(bufnr)
-  if success then
-    H.notify("Comments shown")
-  end
-
   return success, error_msg
 end
 
